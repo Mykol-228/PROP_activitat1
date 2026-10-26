@@ -30,14 +30,23 @@ public class Mapa extends MapaBase {
 
     @Override
     public boolean equals(Object o) {
-        //@TODO: implementar
-        return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        final Mapa other = (Mapa) o;
+
+        if (!this.agents.equals(other.agents)) return false;
+
+        //deepEquals permet comparar matrius
+        if(!Arrays.deepEquals(this.grid, other.grid)) return false;
+
+        return true;
     }
 
     @Override
     public int hashCode() {
-        //@TODO: implementar
-        return 0;
+        int hash = java.util.Objects.hash(agents);
+        hash = 31 * hash + java.util.Arrays.deepHashCode(this.grid);;
+        return hash;
     }
 
     /**

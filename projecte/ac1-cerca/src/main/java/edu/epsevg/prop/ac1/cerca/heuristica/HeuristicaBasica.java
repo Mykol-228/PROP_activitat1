@@ -16,13 +16,24 @@ public class HeuristicaBasica implements Heuristica {
 
 
     public HeuristicaBasica() {
-        //@TODO: implementar
+        //@TODO: implementar 
     }
 
     @Override
     public int h(Mapa estat) {
         //@TODO: implementar
-        return 0;
+        int sumaDistancies = 0;
+
+        List<Posicio> agents = estat.getAgents();
+        for (int i = 0; i < agents.size(); i++) {
+            if(estat.esAgentActiu(i)) {
+                Posicio actual = agents.get(i);
+                Posicio sortida = estat.getSortida(i);
+                
+                sumaDistancies += Math.abs(sortida.x - actual.x) + Math.abs(sortida.y - actual.y);
+            }
+        }
+        return sumaDistancies;
     }
 
     
