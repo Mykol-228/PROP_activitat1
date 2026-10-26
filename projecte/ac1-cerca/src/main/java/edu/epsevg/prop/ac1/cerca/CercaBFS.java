@@ -14,7 +14,7 @@ public class CercaBFS extends Cerca {
 
     @Override
     public void ferCerca(Mapa inicial, ResultatCerca rc) {
-        //@TODO: implementar
+        LNT[]
     }
     
     /**
