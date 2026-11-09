@@ -1,0 +1,14 @@
+(moure agb c3_1 c3_2)
+(moure agb c3_2 c3_3)
+(moure aga c1_6 c1_5)
+(moure aga c1_5 c1_4)
+(moure aga c1_4 c1_3)
+(moure aga c1_3 c1_2)
+(moure aga c1_2 c1_1)
+(arribar-sortida aga c1_1 c1_0)
+(moure agb c3_3 c3_4)
+(moure agb c3_4 c3_5)
+(moure agb c3_5 c3_6)
+(arribar-sortida agb c3_6 c3_7)
+
+Longitud: 12 accions

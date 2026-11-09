@@ -1,7 +1,7 @@
 (define (domain multi-snake)
-  (:requirements :typing)
-  
-  (:types 
+  (:requirements :typing :negative-preconditions)
+
+  (:types
     agent casella
   )
 
@@ -13,10 +13,11 @@
     (ha-sortit ?a - agent)
   )
 
+  ;; Moure's a una casella lliure que no és la pròpia sortida.
+  ;; La casella d'origen queda com a rastre (paret) i la de destí passa a estar ocupada.
   (:action moure
     :parameters (?a - agent ?origen ?desti - casella)
     :precondition (and
-      (not (ha-sortit ?a))
       (en ?a ?origen)
       (adjacents ?origen ?desti)
       (lliure ?desti)
@@ -26,13 +27,14 @@
       (not (en ?a ?origen))
       (en ?a ?desti)
       (not (lliure ?origen))
+      (not (lliure ?desti))
     )
   )
 
+  ;; Moure's a la pròpia sortida: l'agent surt del tauler i la sortida queda segellada.
   (:action arribar-sortida
     :parameters (?a - agent ?origen ?desti - casella)
     :precondition (and
-      (not (ha-sortit ?a))
       (en ?a ?origen)
       (adjacents ?origen ?desti)
       (lliure ?desti)
