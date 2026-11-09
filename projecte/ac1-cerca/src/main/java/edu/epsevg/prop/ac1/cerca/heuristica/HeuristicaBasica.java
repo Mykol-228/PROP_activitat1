@@ -16,12 +16,11 @@ public class HeuristicaBasica implements Heuristica {
 
 
     public HeuristicaBasica() {
-        //@TODO: implementar 
+
     }
 
     @Override
     public int h(Mapa estat) {
-        //@TODO: implementar
         int sumaDistancies = 0;
 
         List<Posicio> agents = estat.getAgents();

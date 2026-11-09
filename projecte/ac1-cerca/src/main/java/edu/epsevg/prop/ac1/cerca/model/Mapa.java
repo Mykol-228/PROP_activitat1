@@ -45,7 +45,7 @@ public class Mapa extends MapaBase {
     @Override
     public int hashCode() {
         int hash = java.util.Objects.hash(agents);
-        hash = 31 * hash + java.util.Arrays.deepHashCode(this.grid);;
+        hash = 31 * hash + java.util.Arrays.deepHashCode(this.grid);
         return hash;
     }
 
