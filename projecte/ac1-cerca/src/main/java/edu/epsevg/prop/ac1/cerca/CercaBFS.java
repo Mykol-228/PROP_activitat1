@@ -14,7 +14,7 @@ public class CercaBFS extends Cerca {
 
     @Override
     public void ferCerca(Mapa inicial, ResultatCerca rc) {
-        ArrayDeque<Node> cua = new ArrayDeque<>();
+        ArrayDeque<Node> cua = new ArrayDeque<>();  // Per simular la cua farem servir add (afegir al final)
         Set<Mapa> visitats = new HashSet<>();
 
         Node arrel = new Node(inicial, null, null, 0, 0);
@@ -63,15 +63,17 @@ public class CercaBFS extends Cerca {
         }
     }
 
+    //Post: retorna true si troba algun node anterior que té la mateixa mapa
     private boolean enBrancaActual(Node nodeActual, Mapa estatNou) {
+        boolean cicleTrobat = false;
         Node aux = nodeActual;
-        while (aux != null) {
+        while (aux != null && !cicleTrobat) {
             if (aux.estat.equals(estatNou)) {
-                return true;
+                cicleTrobat = true;
             }
             aux = aux.pare;
         }
-        return false;
+        return cicleTrobat;
     }
 
     private void reconstruirCami(Node solucio, ResultatCerca rc) {

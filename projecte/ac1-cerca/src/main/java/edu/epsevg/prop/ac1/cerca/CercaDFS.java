@@ -68,17 +68,17 @@ public class CercaDFS extends Cerca {
         }
     }
 
-    //Comprovem tots els nodes fins actual en cas que hi hagui un estat de mapa igual
-    //al actual, indica que hem entrar en un cicle
+    //Post: retorna true si troba algun node anterior que té la mateixa mapa
     private boolean enBrancaActual(Node nodeActual, Mapa estatNou) {
+        boolean cicleTrobat = false;
         Node aux = nodeActual;
-        while (aux != null) {
+        while (aux != null && !cicleTrobat) {
             if (aux.estat.equals(estatNou)) {
-                return true;
+                cicleTrobat = true;
             }
             aux = aux.pare;
         }
-        return false;
+        return cicleTrobat;
     }
 
     private void reconstruirCami(Node solucio, ResultatCerca rc) {
