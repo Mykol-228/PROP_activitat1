@@ -1,10 +1,9 @@
 package edu.epsevg.prop.ac1.cerca;
 
 import edu.epsevg.prop.ac1.cerca.model.Mapa;
-import edu.epsevg.prop.ac1.model.Moviment;
 import edu.epsevg.prop.ac1.resultat.ResultatCerca;
 
-import java.util.*;
+import java.util.ArrayDeque;
 
 public class CercaBFS extends Cerca {
 
@@ -14,85 +13,15 @@ public class CercaBFS extends Cerca {
 
     @Override
     public void ferCerca(Mapa inicial, ResultatCerca rc) {
-        ArrayDeque<Node> cua = new ArrayDeque<>();  // Per simular la cua farem servir add (afegir al final)
-        Set<Mapa> visitats = new HashSet<>();
-
-        Node arrel = new Node(inicial, null, null, 0, 0);
-        cua.add(arrel);
-
-        if (usesLNT()) {
-            visitats.add(inicial);
-        }
-
-        while (!cua.isEmpty()) {
-            Node actual = cua.poll();
-            rc.actualitzaProfunditat(actual.depth); 
-
-            // Comprovem si és l'estat final
-            if (actual.estat.esFinalPartida()) {
-                reconstruirCami(actual, rc);
-                rc.updateMemoria(cua.size(), usesLNT() ? visitats.size() : 0);
-                return;
-            }
-
-            rc.incNodesExplorats();
-
-            List<Moviment> accions = actual.estat.getAccionsPossibles();
-            for (Moviment mov : accions) {
-                Mapa nouEstat = (Mapa) actual.estat.mou(mov);
-
-                if (usesLNT()) {
-                    if (!visitats.contains(nouEstat)) {
-                        visitats.add(nouEstat);
-                        cua.add(new Node(nouEstat, actual, mov, actual.depth + 1, actual.g + 1));
-                    } else {
-                        rc.incNodesTallats();
-                    }
-                } else {
-                    // Control de cicles dins de la branca actual
-                    if (!enBrancaActual(actual, nouEstat)) {
-                        cua.add(new Node(nouEstat, actual, mov, actual.depth + 1, actual.g + 1));
-                    } else {
-                        rc.incNodesTallats();
-                    }
-                }
-            }
-
-            // Actualitzem les mètriques de memòria periòdicament
-            rc.updateMemoria(cua.size(), usesLNT() ? visitats.size() : 0);
-        }
+        // LNO com a cua (FIFO): s'explora primer el node més antic
+        cercaGenerica(inicial, rc, new ArrayDeque<>());
     }
 
-    //Post: retorna true si troba algun node anterior que té la mateixa mapa
-    private boolean enBrancaActual(Node nodeActual, Mapa estatNou) {
-        boolean cicleTrobat = false;
-        Node aux = nodeActual;
-        while (aux != null && !cicleTrobat) {
-            if (aux.estat.equals(estatNou)) {
-                cicleTrobat = true;
-            }
-            aux = aux.pare;
-        }
-        return cicleTrobat;
-    }
-
-    private void reconstruirCami(Node solucio, ResultatCerca rc) {
-        List<Moviment> cami = new LinkedList<>();
-        Node actual = solucio;
-        
-        while (actual.accio != null) {
-            cami.add(0, actual.accio);
-            actual = actual.pare;
-        }
-        
-        rc.setSolucio(cami);
-    }
-    
     /**
      * Torna el nom de la cerca.
      * @return el nom de la cerca.
      */
     public String getNomCerca(){
         return "BFS";
-    }    
+    }
 }
