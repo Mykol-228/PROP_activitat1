@@ -17,6 +17,7 @@ public class Node {
     public final Moviment accio;
     public final int depth;
     public final int g; // cost
+    public int h;       // heurística (només A*)
 
     public Node(Mapa estat, Node pare, Moviment accio, int depth, int g) {
         this.estat = estat;
@@ -26,25 +27,25 @@ public class Node {
         this.g = g;
     }
 
-    /**
-     * Reconstrueix el camí des de l'arrel fins a aquest node pujant pels pares.
-     * @return la llista de moviments en ordre (buida si és l'arrel)
-     */
+    // Retorna els moviments des de l'arrel fins a aquest node
     public List<Moviment> getCami() {
-        LinkedList<Moviment> cami = new LinkedList<>();
-        for (Node n = this; n.pare != null; n = n.pare) {
-            cami.addFirst(n.accio);
+        List<Moviment> cami = new LinkedList<>();
+        Node aux = this;
+        while (aux.pare != null) {
+            cami.add(0, aux.accio);
+            aux = aux.pare;
         }
         return cami;
     }
 
-    /**
-     * Mira si {@code e} apareix en aquest node o en algun dels seus ancestres
-     * (control de cicles dins de la branca actual).
-     */
+    // Mira si l'estat e és en aquest node o en algun dels seus pares
     public boolean estaEnBranca(Mapa e) {
-        for (Node n = this; n != null; n = n.pare) {
-            if (n.estat.equals(e)) return true;
+        Node aux = this;
+        while (aux != null) {
+            if (aux.estat.equals(e)) {
+                return true;
+            }
+            aux = aux.pare;
         }
         return false;
     }

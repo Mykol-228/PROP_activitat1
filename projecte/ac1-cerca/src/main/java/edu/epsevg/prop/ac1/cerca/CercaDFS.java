@@ -3,31 +3,32 @@ package edu.epsevg.prop.ac1.cerca;
 import edu.epsevg.prop.ac1.cerca.model.Mapa;
 import edu.epsevg.prop.ac1.resultat.ResultatCerca;
 
-import java.util.ArrayDeque;
-import java.util.Collections;
+import java.util.*;
 
 public class CercaDFS extends Cerca {
     private static final int LIMIT_PER_DEFECTE = 50;
+    private int limit = LIMIT_PER_DEFECTE;
 
-    private final int limit;
+    public CercaDFS(boolean usarLNT) { super(usarLNT); }
 
-    public CercaDFS(boolean usarLNT) { this(usarLNT, LIMIT_PER_DEFECTE); }
-
-    /**
-     * DFS amb un límit de profunditat qualsevol (el fa servir la IDS).
-     * @param limit els nodes d'aquesta profunditat ja no s'expandeixen
-     */
-    CercaDFS(boolean usarLNT, int limit) {
+    // Constructor amb un altre límit (el fa servir la IDS)
+    public CercaDFS(boolean usarLNT, int limit) {
         super(usarLNT);
         this.limit = limit;
     }
 
     @Override
     public void ferCerca(Mapa inicial, ResultatCerca rc) {
-        // LNO com a pila (LIFO): s'explora primer el node més nou
-        cercaGenerica(inicial, rc, Collections.asLifoQueue(new ArrayDeque<>()));
+        cercaGenerica(inicial, rc, new LinkedList<Node>());
     }
 
+    // Afegim al principi perquè es tregui primer l'últim afegit (pila)
+    @Override
+    protected void afegirALNO(List<Node> lno, Node fill) {
+        lno.add(0, fill);
+    }
+
+    // Comprovem si no hem passat el límit
     @Override
     protected boolean expandible(Node n) {
         return n.depth < limit;

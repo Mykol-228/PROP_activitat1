@@ -7,7 +7,6 @@ import edu.epsevg.prop.ac1.resultat.ResultatCerca;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Queue;
 import java.util.Set;
 
 /**
@@ -15,15 +14,9 @@ import java.util.Set;
  * ha de mantenir una llista de nodes tancats/visitats (LNT) per detectar i tallar
  * estats repetits, o bé si només ha d'evitar tornar directament a un ancestre del propi
  * camí (detecció de cicles més feble i barata en memòria).
- * <p>
- * BFS, DFS i A* comparteixen el mateix bucle de cerca ({@link #cercaGenerica}); només
- * canvia el tipus de LNO que fan servir (cua, pila o cua de prioritat).
  */
 public abstract class Cerca {
     protected final boolean usarLNT;
-
-    /** Cert si l'última cerca ha deixat algun node sense expandir pel límit de profunditat. */
-    protected boolean tallatPerProfunditat;
 
     public Cerca(boolean usarLNT) {
         this.usarLNT = usarLNT;
@@ -50,25 +43,23 @@ public abstract class Cerca {
     public abstract String getNomCerca();
 
     /**
-     * Bucle de cerca comú. L'ordre en què s'exploren els nodes el decideix la LNO que
-     * es passa per paràmetre (FIFO per BFS, LIFO per DFS, prioritat per A*).
-     * <p>
-     * Els nodes tallats ({@code incNodesTallats}) són només els descartats per cicles o
-     * estats repetits; els que no s'expandeixen pel límit de profunditat no hi compten.
-     * @param inicial estat inicial
-     * @param rc on es desen els resultats
-     * @param lno llista de nodes oberts (buida)
+     * Bucle de cerca comú per BFS, DFS i A*. Només canvia on s'afegeixen els fills a la LNO.
      */
-    protected void cercaGenerica(Mapa inicial, ResultatCerca rc, Queue<Node> lno) {
-        Set<Mapa> lnt = usarLNT ? new HashSet<>() : null;
-        tallatPerProfunditat = false;
+    protected void cercaGenerica(Mapa inicial, ResultatCerca rc, List<Node> lno) {
+        Set<Mapa> lnt = null;
+        if (usarLNT) {
+            lnt = new HashSet<>();
+        }
 
-        lno.add(new Node(inicial, null, null, 0, 0));
+        Node arrel = new Node(inicial, null, null, 0, 0);
+        if (!descartar(arrel)) {
+            lno.add(arrel);
+        }
 
         while (!lno.isEmpty()) {
-            Node actual = lno.poll();
+            Node actual = lno.remove(0);
 
-            // Amb LNT, un mateix estat pot ser a la LNO més d'un cop: si ja s'ha explorat, es talla
+            // Un mateix estat pot estar repetit a la LNO
             if (usarLNT && lnt.contains(actual.estat)) {
                 rc.incNodesTallats();
                 continue;
@@ -81,50 +72,63 @@ public abstract class Cerca {
 
             rc.incNodesExplorats();
             rc.actualitzaProfunditat(actual.depth);
-            if (usarLNT) lnt.add(actual.estat);
+            nodeExplorat(actual, rc);
+            if (usarLNT) {
+                lnt.add(actual.estat);
+            }
 
+            // Límit de profunditat: no ho comptem com a tallat
             if (!expandible(actual)) {
-                tallatPerProfunditat = true;
                 continue;
             }
 
             for (Node fill : successors(actual)) {
                 if (esRepetit(fill, lnt)) {
                     rc.incNodesTallats();
-                } else {
-                    lno.add(fill);
+                } else if (!descartar(fill)) {
+                    afegirALNO(lno, fill);
                 }
             }
-            rc.updateMemoria(lno.size(), usarLNT ? lnt.size() : 0);
+
+            int midaLNT = 0;
+            if (usarLNT) {
+                midaLNT = lnt.size();
+            }
+            rc.updateMemoria(lno.size(), midaLNT);
         }
-        // Si la LNO queda buida no hi ha solució: la solució queda a null
     }
 
-    /**
-     * Indica si un node es pot expandir. Per defecte sempre; la DFS ho sobreescriu per
-     * aplicar el límit de profunditat.
-     */
+    // Per defecte afegeix al final (cua). La DFS i l'A* ho sobreescriuen.
+    protected void afegirALNO(List<Node> lno, Node fill) {
+        lno.add(fill);
+    }
+
+    // Per defecte tots els nodes es poden expandir. La DFS ho sobreescriu pel límit.
     protected boolean expandible(Node n) {
         return true;
     }
 
-    /**
-     * Control de cicles comú a totes les cerques. Amb LNT mira si l'estat ja s'ha
-     * explorat; sense LNT mira si l'estat es repeteix dins de la branca (pujant pels pares).
-     * @param n node a comprovar
-     * @param lnt llista de nodes tancats ({@code null} si no s'usa LNT)
-     * @return true si el node s'ha de tallar
-     */
-    protected boolean esRepetit(Node n, Set<Mapa> lnt) {
-        if (lnt != null) return lnt.contains(n.estat);
-        return n.pare != null && n.pare.estaEnBranca(n.estat);
+    // Per defecte no es descarta cap node. L'A* ho sobreescriu (h infinita).
+    protected boolean descartar(Node n) {
+        return false;
+    }
+
+    // Per defecte no fa res. L'A* ho sobreescriu per informar de l'heurística.
+    protected void nodeExplorat(Node n, ResultatCerca rc) {
     }
 
     /**
-     * Genera els nodes fills de {@code n} aplicant tots els moviments possibles.
-     * @param n node a expandir
-     * @return la llista de fills
+     * Control de cicles: amb LNT mira si l'estat ja s'ha explorat, i sense LNT mira si
+     * l'estat ja apareix a la branca.
      */
+    protected boolean esRepetit(Node n, Set<Mapa> lnt) {
+        if (lnt != null) {
+            return lnt.contains(n.estat);
+        }
+        return n.pare != null && n.pare.estaEnBranca(n.estat);
+    }
+
+    // Genera tots els fills del node
     protected List<Node> successors(Node n) {
         List<Node> fills = new ArrayList<>();
         for (Moviment mov : n.estat.getAccionsPossibles()) {

@@ -4,21 +4,22 @@ import edu.epsevg.prop.ac1.cerca.model.Mapa;
 import edu.epsevg.prop.ac1.resultat.ResultatCerca;
 
 public class CercaIDS extends Cerca {
+    private static final int LIMIT_PER_DEFECTE = 50;
 
     public CercaIDS(boolean usarLNT) { super(usarLNT); }
 
-    /**
-     * Repeteix una DFS amb límit 0, 1, 2... fins que troba solució. Els nodes explorats
-     * s'acumulen a {@code rc} entre iteracions. Si una iteració no ha hagut de deixar cap
-     * node sense expandir pel límit, ja s'ha recorregut tot l'arbre i no hi ha solució.
-     */
     @Override
     public void ferCerca(Mapa inicial, ResultatCerca rc) {
-        for (int limit = 0; ; limit++) {
+        // Iterem incrementant el límit de profunditat de 1 en 1
+        for (int limit = 1; limit <= LIMIT_PER_DEFECTE; ++limit) {
+
+            // A cada iteració fem una DFS nova amb el límit actual
             CercaDFS dfs = new CercaDFS(usarLNT, limit);
             dfs.ferCerca(inicial, rc);
 
-            if (rc.getSolucio() != null || !dfs.tallatPerProfunditat) return;
+            if (rc.getSolucio() != null) {
+                return;
+            }
         }
     }
 

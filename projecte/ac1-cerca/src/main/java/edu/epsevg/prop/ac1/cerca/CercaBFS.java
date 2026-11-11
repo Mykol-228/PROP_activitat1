@@ -3,7 +3,7 @@ package edu.epsevg.prop.ac1.cerca;
 import edu.epsevg.prop.ac1.cerca.model.Mapa;
 import edu.epsevg.prop.ac1.resultat.ResultatCerca;
 
-import java.util.ArrayDeque;
+import java.util.*;
 
 public class CercaBFS extends Cerca {
 
@@ -13,8 +13,8 @@ public class CercaBFS extends Cerca {
 
     @Override
     public void ferCerca(Mapa inicial, ResultatCerca rc) {
-        // LNO com a cua (FIFO): s'explora primer el node més antic
-        cercaGenerica(inicial, rc, new ArrayDeque<>());
+        // Per simular la cua farem servir add (afegir al final), que és el que fa afegirALNO per defecte
+        cercaGenerica(inicial, rc, new LinkedList<Node>());
     }
 
     /**
