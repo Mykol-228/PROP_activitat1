@@ -59,7 +59,57 @@ public class Mapa extends MapaBase {
      */
     @Override
     public int[][] distancesFrom(Posicio src) {
-        //@TODO: implementar
-        return null;
+        // Inicialitzem la matriu de distàncies a INF
+        int[][] dist = new int[this.n][this.m];
+        for (int i = 0; i < this.n; i++) {
+            for (int j = 0; j < this.m; j++) {
+                dist[i][j] = MapaBase.INF;
+            }
+        }
+
+        // Comprovem la validesa de l'origen
+        if (src == null || src.x < 0 || src.x >= this.n || src.y < 0 || src.y >= this.m) {
+            return dist;
+        }
+
+        // Inicialitzem la cua BFS
+        ArrayDeque<Posicio> cua = new ArrayDeque<>();
+        dist[src.x][src.y] = 0;
+        cua.add(src);
+
+        // Bucle principal BFS
+        while (!cua.isEmpty()) {
+            Posicio actual = cua.poll();
+
+            // Recorrem les 4 direccions possibles
+            for (Direccio d : Direccio.values()) {
+                Posicio seguent = actual.translate(d);
+
+                // Comprovem límits de la graella
+                if (seguent.x >= 0 && seguent.x < this.n && seguent.y >= 0 && seguent.y < this.m) {
+                    
+                    // Comprovem que no sigui paret
+                    if (this.grid[seguent.x][seguent.y] != MapaBase.PARET) {
+                        
+                        // Comprovem si hi ha cap altre agent a la casella
+                        boolean casellaOcupada = false;
+                        for (int i = 0; i < this.agents.size() && !casellaOcupada; i++) {
+                            Posicio agent = this.agents.get(i);
+                            if (agent != null && agent.equals(seguent)) {
+                                casellaOcupada = true;
+                            }
+                        }
+
+                        // Si és transitable i no visitada
+                        if (!casellaOcupada && dist[seguent.x][seguent.y] == MapaBase.INF) {
+                            dist[seguent.x][seguent.y] = dist[actual.x][actual.y] + 1;
+                            cua.add(seguent);
+                        }
+                    }
+                }
+            }
+        }
+
+        return dist;
     }
 }

@@ -29,8 +29,6 @@ public class HeuristicaAvancada implements Heuristica {
                 Posicio sortida = estat.getSortida(i);
 
                 // Calculem la matriu de distànciesBFS des de la posició actual de l'agent
-
-                /* Falta implementar distanciesFrom
                 int[][] distMat = estat.distancesFrom(actual); 
                 int d = distMat[sortida.x][sortida.y];
                 
@@ -41,7 +39,6 @@ public class HeuristicaAvancada implements Heuristica {
                 }
 
                 sumaDistancies += d;
-                */
             }
         }
         
