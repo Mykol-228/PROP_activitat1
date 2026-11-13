@@ -9,8 +9,8 @@ import java.util.*;
 
 public class CercaAStar extends Cerca {
 
-    private Heuristica heur;
-    private Comparator<Node> comparador;
+    protected Heuristica heur;
+    protected Comparator<Node> comparador;   // ordre de la LNO (la Best-First el canvia)
 
     public CercaAStar(boolean usarLNT, Heuristica heur) {
         super(usarLNT);

@@ -6,8 +6,8 @@ import edu.epsevg.prop.ac1.model.Posicio;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.LinkedList;
 
 /**
  * Implementació concreta de {@link MapaBase}. Aquí és on cal decidir quan dos estats
@@ -73,7 +73,7 @@ public class Mapa extends MapaBase {
         }
 
         // Inicialitzem la cua BFS
-        ArrayDeque<Posicio> cua = new ArrayDeque<>();
+        LinkedList<Posicio> cua = new LinkedList<>();
         dist[src.x][src.y] = 0;
         cua.add(src);
 

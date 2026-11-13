@@ -137,4 +137,21 @@ public abstract class Cerca {
         }
         return fills;
     }
+
+    // Com successors, però només mou el primer agent que encara no ha sortit (pregunta [11])
+    protected List<Node> successorsPrimerAgent(Node n) {
+        int primer = 0;
+        while (!n.estat.esAgentActiu(primer)) {
+            primer++;
+        }
+
+        List<Node> fills = new ArrayList<>();
+        for (Moviment mov : n.estat.getAccionsPossibles()) {
+            if (mov.getAgentId() == primer) {
+                Mapa fill = (Mapa) n.estat.mou(mov);
+                fills.add(new Node(fill, n, mov, n.depth + 1, n.g + 1));
+            }
+        }
+        return fills;
+    }
 }
