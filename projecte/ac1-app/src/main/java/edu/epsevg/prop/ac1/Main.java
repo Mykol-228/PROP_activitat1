@@ -17,7 +17,7 @@ import edu.epsevg.prop.ac1.model.MapaBase;
 import edu.epsevg.prop.ac1.resultat.ResultatCerca;
 import edu.epsevg.prop.ac1.utils.CsvWriter;
 import edu.epsevg.prop.ac1.cerca.*;
-import edu.epsevg.prop.ac1.cerca.heuristica.HeuristicaAvancada;
+import edu.epsevg.prop.ac1.cerca.heuristica.*;
 
 
 public class Main {
@@ -56,7 +56,7 @@ public class Main {
         //executarIRecopilarResultats(  new CercaBFS(true), m, csv);
         //executarIRecopilarResultats(  new CercaDFS(false),m, csv);
         //  ...
-        //executarIRecopilarResultats(  new CercaAStar(usarLNT, new HeuristicaAvancada()), m, csv);
+        executarIRecopilarResultats(  new CercaAStar(usarLNT, new HeuristicaAvancada()), m, csv);
 
         // Escrivim els resultats
         CsvWriter cw = new CsvWriter(RESULTS_FILE);
