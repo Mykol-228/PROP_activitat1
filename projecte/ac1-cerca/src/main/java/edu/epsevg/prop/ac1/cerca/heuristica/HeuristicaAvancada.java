@@ -17,6 +17,8 @@ public class HeuristicaAvancada implements Heuristica {
     public HeuristicaAvancada() {
     }
 
+    //PRE: estat és un mapa.
+    //POST: retorna la suma de les distàncies reals (BFS) de cada agent actiu a la seva sortida, o INF si alguna sortida és inabastable.
     @Override
     public int h(Mapa estat) {
         int sumaDistancies = 0;
@@ -27,12 +29,10 @@ public class HeuristicaAvancada implements Heuristica {
                 Posicio actual = agents.get(i);
                 Posicio sortida = estat.getSortida(i);
 
-                // Calculem la matriu de distàncies (BFS) des de la posició actual de l'agent
                 int[][] distMat = estat.distancesFrom(actual); 
                 int d = distMat[sortida.x][sortida.y];
                 
 
-                // Si la sortida és inabastable, l'estat és invàlid retornem INF
                 if (d >= MapaBase.INF) {
                     return MapaBase.INF;
                 }

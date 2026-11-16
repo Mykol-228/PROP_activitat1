@@ -19,6 +19,8 @@ public class HeuristicaBasica implements Heuristica {
 
     }
 
+    //PRE: estat és un mapa.
+    //POST: retorna la suma de les distàncies Manhattan de cada agent actiu a la seva sortida.
     @Override
     public int h(Mapa estat) {
         int sumaDistancies = 0;

@@ -10,7 +10,7 @@ import java.util.*;
 public class CercaAStar extends Cerca {
 
     protected Heuristica heur;
-    protected Comparator<Node> comparador;   // ordre de la LNO (la Best-First el canvia)
+    protected Comparator<Node> comparador;
 
     public CercaAStar(boolean usarLNT, Heuristica heur) {
         super(usarLNT);
@@ -19,33 +19,23 @@ public class CercaAStar extends Cerca {
     }
 
 
+    //PRE: inicial és l'estat inicial, rc guarda els resultats.
+    //POST: rc conté el resultat de la cerca A*.
     @Override
     public void ferCerca(Mapa inicial, ResultatCerca rc) {
-        // LNO ordenada per f = g + h
-        cercaGenerica(inicial, rc, new ArrayList<Node>());
+        cercaGenerica(inicial, rc, new PriorityQueue<Node>(comparador));
     }
 
-    // Inserció ordenada amb cerca binària. Si n'hi ha d'iguals, el posem darrere.
-    @Override
-    protected void afegirALNO(List<Node> lno, Node fill) {
-        int index = Collections.binarySearch(lno, fill, comparador);
-        if (index < 0) {
-            index = -(index + 1);
-        } else {
-            while (index < lno.size() && comparador.compare(lno.get(index), fill) == 0) {
-                index++;
-            }
-        }
-        lno.add(index, fill);
-    }
-
-    // Si alguna sortida és inabastable (h infinita), l'estat no porta a cap solució
+    //PRE: n és un node.
+    //POST: n.h guarda l'heurística de n, retorna TRUE si és INF, FALSE altrament.
     @Override
     protected boolean descartar(Node n) {
         n.h = heur.h(n.estat);
         return n.h >= MapaBase.INF;
     }
 
+    //PRE: n és el node explorat amb n.h calculada, rc guarda els resultats.
+    //POST: s'ha guardat l'heurística de n a rc.
     @Override
     protected void nodeExplorat(Node n, ResultatCerca rc) {
         rc.actualitzaHeuristica(n.h);
@@ -59,8 +49,9 @@ public class CercaAStar extends Cerca {
         return "A*("+heur.getNom()+")";
     }
 
-    // Ordena per f de menor a major. Si empaten, primer el de g més gran.
     private static class ComparadorF implements Comparator<Node> {
+        //PRE: n1 i n2 són nodes amb h calculada.
+        //POST: retorna negatiu si n1 té menor f (o la mateixa f i més g), positiu si va després, 0 si són iguals.
         @Override
         public int compare(Node n1, Node n2) {
             int f1 = n1.g + n1.h;

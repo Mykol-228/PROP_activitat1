@@ -56,9 +56,15 @@ A*(H.av);YES;mapD;YES;YES;42;50010;48113;72482;50010;122492;2851
 
 **[2] Per problema de cerca Multi-snake, té sentit buscar cicles en l'arbre de cerca pujant per l'arbre dins de la branca actual (usarLNT=false)? Justifiqueu-ho i comproveu-ho amb el comptador de nodes tallats.**
 
-Té sentit per estalviar memòria, ja que comprovar l'arbre només cap amunt fins a l'arrel consumeix memòria lineal, mentre que utilitzar una LNT per registrar tots els estats visitats consumeix memòria exponencial i pot causar desbordaments. No obstant això, el control exclusiu per la branca actual només detecta cicles mirant als pares i és incapaç de detectar cicles dels altres nodes. Això provoca que s'explora camins redundants de forma massiva.   
+No té sentit buscar cicles pujant per la branca, perquè en aquest problema un estat mai es pot repetir dins de la seva pròpia branca. Cada moviment converteix la casella d'origen en paret (i, quan un agent surt, també la seva sortida). Per tant, un fill sempre té almenys una paret més que el seu pare, dues més que el seu avi, etc., i mai pot ser igual a cap dels seus ancestres. La comprovació pujant fins a l'arrel no trobarà mai cap cicle, i només fa perdre temps (per cada fill es recorren tots els pares comparant graelles).
 
-El primer cas LTN és fals i al segon true:
+Ho confirma el comptador de nodes tallats: amb usarLNT=false surten 0 nodes tallats a tots els mapes i a totes les cerques.
+
+Un altre tema és si convé no fer servir la LNT. Sense LNT només es guarda la branca actual i la memòria és mínima (lineal), mentre que la LNT guarda tots els estats explorats. El que passa és que sí que hi ha estats repetits, però en branques diferents: el mateix estat s'hi arriba movent els agents en un ordre diferent. Això la comprovació per branca no ho pot detectar, i la LNT sí. Per tant, és un intercanvi entre memòria i temps:
+- Sense LNT: memòria mínima, però s'exploren moltíssims estats repetits.
+- Amb LNT: molt més ràpid, a canvi de gastar més memòria.
+
+Exemple amb la DFS al mapa B2. El primer cas és amb LNT a fals i el segon amb LNT a cert:
 
 Executant CercaDFS sobre mapB2
 [DFS/mapB2] 20s: explorats=24468601 tallats=0 profunditatMax=36 memòria(oberts/tancats/total)=95/0/95
@@ -69,7 +75,14 @@ Executant CercaDFS sobre mapB2
 > SOLUCIO: [Agent 1 -> DRETA, Agent 1 -> DRETA, Agent 1 -> DRETA, Agent 1 -> DRETA, Agent 1 -> DRETA, Agent 1 -> DRETA, Agent 1 -> AVALL, Agent 1 -> ESQUERRA, Agent 1 -> ESQUERRA, Agent 1 -> ESQUERRA, Agent 1 -> ESQUERRA, Agent 1 -> ESQUERRA, Agent 1 -> ESQUERRA, Agent 1 -> AVALL, Agent 1 -> DRETA, Agent 1 -> DRETA, Agent 1 -> DRETA, Agent 1 -> DRETA, Agent 1 -> DRETA, Agent 1 -> DRETA, Agent 1 -> AVALL, Agent 1 -> DRETA, Agent 0 -> ESQUERRA, Agent 0 -> ESQUERRA, Agent 0 -> ESQUERRA, Agent 0 -> ESQUERRA, Agent 0 -> ESQUERRA, Agent 0 -> AVALL, Agent 0 -> AVALL, Agent 0 -> AVALL, Agent 0 -> ESQUERRA]
         CercaDFS -> Resultat: 31 moviments, explorats=8049, tallats=7115, profunditatMax=36, memòria(oberts/tancats/total)=95/8049/8126, temps=61ms
 
-Com es pot veure, el primer té 0 nodes tallats (és a dir ningún node pare no s'ha repetit) i ha tardat molt més perquè ha hagut d'explorar molts nodes repetits, mentre que l'altre ha gastat més memòria per guardar la LNT (8049 tancats) però ha tallat 7115 nodes i ha sigut molt més ràpid (8049 explorats en 61ms comparant amb 24930926 en 20395ms).
+| DFS mapa B2 	| Explorats 	| Tallats 	| Memòria total | 	Temps 	|
+|	---	|	---	|	---	|	---	|	---	|
+| Sense LNT 	| 24.930.926 	| 	0	| 	95	| 20.395 ms 	|
+| Amb LNT 	| 8.049 	| 	7.115 	| 	8.126 	| 	61 ms 	|
+
+Sense LNT surten 0 nodes tallats: la comprovació per branca no ha trobat cap cicle, tot i explorar gairebé 25 milions de nodes. Aquests nodes no són cicles, sinó el mateix estat trobat des de branques diferents. Amb LNT es gasta més memòria (8.049 tancats), però es tallen 7.115 estats repetits i la cerca és unes 330 vegades més ràpida (61 ms contra 20.395 ms).
+
+No fer servir la LNT té sentit quan la memòria és el problema, però la cerca de cicles pujant per la branca no aporta res. Es podria eliminar i el resultat seria el mateix, només que una mica més ràpid.
 
 **[3] Calculeu el factor d'embrancament mitjà (real) del mapa A per BFS usant LNT i sense fer-la servir. Justifiqueu els avantatges d'usar la LNT respecte a no fer-la servir.**
 
@@ -112,13 +125,110 @@ En canvi, les heurístiques guien el camí de manera òptima i permeten ignorar 
 
 **[8] Expliqueu la influència de les heurístiques al mapa D.**
 
+El mapa D (10×16, 2 agents) té la solució òptima a 42 moviments (22 de l'agent A i 20 del B). És el primer mapa on l'heurística escollida decideix si la cerca acaba o no:
+
+| 	Cerca 		| 		Resultat 								|
+|	---		|		---									|
+| A*(H.bas) sense LNT 	| 		No acaba (>120 s) 							|
+| A*(H.bas) amb LNT 	| 		No acaba (>120 s) 							|
+| A*(H.av) sense LNT 	| 		No acaba (>120 s)							|
+| A*(H.av) amb LNT 	| 42 moviments, 50.010 explorats, 48.113 tallats, memòria total 122.492, 2.851 ms	|
+
+L'heurística avançada funciona i la bàsica no per dos motius:
+
+1. **És molt més precisa.** A l'estat inicial, H.bas = 18 i H.av = 38, mentre que el cost real és 42. La bàsica fa servir la distància Manhattan i ignora la paret de la fila 7, que obliga els dos agents a fer la volta per la dreta per baixar al passadís de la fila 8. Per tant, s'equivoca en 24 moviments. Com que l'A* explora tots els nodes amb f < 42, amb H.bas ha d'explorar una quantitat enorme d'estats que semblen bons i no ho són. L'avançada només s'equivoca en 4 moviments.
+2. **Descarta estats sense solució.** Les dues sortides (b a la columna 3 i a a la columna 9) estan sota el passadís de la fila 8, que només té una casella d'amplada. Si un agent passa per sobre de la sortida de l'altre (per exemple, el B caminant cap a l'esquerra per sobre de la casella (8,9)), hi deixa rastre i aquella sortida queda inaccessible per sempre. L'heurística avançada ho detecta (h = INF) i l'A* descarta l'estat immediatament. La bàsica no ho veu, i continua explorant branques que mai no poden acabar.
+
+A més, **sense LNT no acaba ni amb l'heurística avançada**. Un mateix estat s'hi pot arribar moltíssimes vegades canviant només l'ordre en què es mouen els agents: hi ha C(42,20) ≈ 5,1·10¹¹ ordres diferents per a la mateixa solució (vegeu [11]). Amb LNT, aquests estats repetits es tallen: 48.113 tallats per 50.010 explorats, gairebé un tallat per cada node explorat.
+
 **[9] Per què els algorismes estàndard no són capaços de donar una solució als mapes E i F? Justifiqueu-ho numèricament.**
+
+Són mapes molt més grans (E: 16×64 amb 799 caselles lliures; F: 14×28 amb 272 caselles lliures) i tenen 3 agents. Les solucions també són molt més llargues: l'heurística avançada, que mai sobreestima, dona 125 a l'inici del mapa E i 85 al F. Per tant, la solució òptima té com a mínim 125 i 85 moviments, respectivament.
+
+- **Cerques cegues.** Amb el factor d'embrancament real del mapa A (b ≈ 2,97 sense LNT i b ≈ 1,94 amb LNT, pregunta [3]), una BFS fins a profunditat 125 hauria de generar uns 2,97¹²⁵ ≈ 1,2·10⁵⁹ nodes (o 1,94¹²⁵ ≈ 9,4·10³⁵ amb LNT). Al mapa F, fins a profunditat 85, serien uns 1,5·10⁴⁰ (o 2,9·10²⁴ amb LNT). A més, cada estat guarda tota la graella: aproximadament 4,5 KB al mapa E i 2 KB al F. Amb 2 GB de memòria hi caben com a màxim unes 460.000 i 1.000.000 d'estats, respectivament. La DFS i la IDS tenen a més el límit de profunditat de 50, i com que les solucions en necessiten més de 85, és impossible que les trobin.
+- **A\* amb heurística avançada i LNT.** En 60 s:
+
+| Mapa | h inicial | Profunditat màxima assolida | Explorats | LNO | LNT |
+|---|---|---|---|---|---|
+| E | 125 | 49 | 52.625 | 156.243 | 52.624 |
+| F | 85 | 27 | 64.357 | 237.876 | 64.356 |
+
+  No arriba ni a la meitat del camí, i la LNO creix sense parar. El motiu és que **l'heurística calcula la distància de cada agent per separat, sense tenir en compte que els agents es poden barrar el pas entre ells**. Al mapa E hi ha un pas d'una sola casella, a (10,36). Al F, els tres passos de la fila 4 són d'una sola casella. Quan un agent travessa un d'aquests passos, el deixa convertit en paret, i la h d'un altre agent salta de cop. Llavors l'A* ha de tornar enrere i provar totes les variants del camí anterior, que tenen una f més baixa.
+- **Explosió d'ordres.** Si els tres agents fan, per exemple, 89, 30 i 52 moviments (la solució que trobem al mapa E), hi ha 171!/(89!·30!·52!) ≈ 3,5·10⁷² seqüències que són la mateixa solució. Al mapa F (42, 20 i 57 moviments) n'hi ha ≈ 4,0·10⁵⁰. La LNT n'elimina una part, però no pot guardar tants estats.
 
 **[10] Quin altre enfocament podríem prendre per solucionar E i F? Si heu implementat el repte, discutiu si el vostre algorisme és complet i si garanteix la solució òptima.**
 
+Hem combinat tres idees:
+
+1. **Restricció d'ordre dels agents** (pregunta [11]). Només es mou el primer agent que encara no ha sortit: primer l'A fins que surt, després el B i després el C. Això elimina totes les seqüències equivalents sense perdre cap solució (mètode `successorsPrimerAgent` de `Cerca`).
+2. **L'heurística avançada**, que fem servir per ordenar els nodes i per descartar els que tenen h = INF (estats sense solució).
+3. **Dos algorismes de cerca informada vistos al laboratori:**
+   - **Beam Search** (`CercaBeam`, amb K = 100): avança per nivells i a cada nivell només es queda els K nodes amb menor h.
+   - **Best-First** (`CercaBestFirst`): és com l'A*, però la LNO s'ordena només per h, sense tenir en compte g.
+
+Resultats amb LNT i heurística avançada:
+
+| Mapa | Beam (K=100) | Best-First |
+|---|---|---|
+| E | 171 moviments, 16.743 explorats, 5,9 s | No acaba (>120 s) |
+| F | Sense solució (es queda sense nodes a profunditat 52) | 119 moviments, 313.958 explorats, LNO màx. 18.811, 36,8 s |
+| D | 42 (0,3 s) | 42 (0,1 s) |
+| C | 112 (12 s) | 112 (0,3 s) |
+
+**Completesa i optimalitat:**
+- **Restricció d'ordre per si sola:** manté la completesa i l'optimalitat, perquè qualsevol solució es pot reordenar agent per agent sense canviar-ne la longitud (pregunta [11]). Però per si sola no n'hi ha prou: l'A* amb aquesta restricció tampoc acaba els mapes E i F en 120 s.
+- **Beam Search: no és completa ni òptima.** Llença tots els nodes que no estan entre els K millors, i si el camí bo era un d'ells ja no el recupera. És exactament el que li passa al mapa F. A canvi, gasta molt poca memòria (com a màxim K nodes a cada nivell).
+- **Best-First amb LNT: és completa, però no és òptima.** És completa perquè l'espai d'estats és finit (cada moviment afegeix una paret) i, gràcies a la LNT, mai repeteix estats. Per tant, si no troba la solució, acaba recorrent tot l'espai. No és òptima perquè ignora el cost acumulat g.
+- **Les solucions trobades no són necessàriament les òptimes.** Com que H.av és admissible, l'òptim és com a mínim de 125 moviments al mapa E i de 85 al F. Per tant, la nostra solució del mapa E (171) està com a molt 46 moviments per sobre de l'òptim, i la del F (119) com a molt 34. Als mapes C i D les dues cerques troben l'òptim (112 i 42), però no ho garanteixen.
+
+Altres enfocaments possibles:
+- Un **A\* ponderat** (f = g + w·h, amb w > 1).
+- Una **heurística que detecti els passos d'una sola casella** que comparteixen diversos agents.
+- **Planificar els agents un per un** (decomposició), comprovant després de cada agent que la resta encara poden arribar a la seva sortida.
+
 **[11] Demostreu que, en aquest problema, l'ordre en què es mouen els agents no afecta la validesa ni la longitud d'una solució (pista: els camins de dos agents diferents mai comparteixen cap casella). Si els agents fan N moviments cadascun, quantes seqüències de moviments diferents representen la mateixa solució? Com podríeu aprofitar-ho per reduir l'espai de cerca?**
 
+**Primer pas: els camins de dos agents són disjunts.** Sigui Pᵢ el conjunt de caselles que trepitja l'agent i en una solució: la casella inicial, totes les intermèdies i la seva sortida. Suposem que una casella c pertany a Pᵢ i a Pⱼ. Un dels dos agents hi passa primer, posem que l'i:
+- mentre l'i hi és, el j no hi pot entrar, perquè seria una col·lisió;
+- quan l'i se'n va, la casella es converteix en paret (rastre), i el j ja no hi pot entrar mai més;
+- si c és la sortida de l'i, en sortir també es converteix en paret.
+
+Per tant, cap casella pot ser de dos camins: **Pᵢ ∩ Pⱼ = ∅**.
+
+**Segon pas: qualsevol ordre és vàlid.** Agafem una solució i en canviem l'ordre, però mantenint l'ordre intern dels moviments de cada agent. Cada moviment de l'agent i continua sent vàlid:
+- la casella on va no pot ser paret per culpa d'un altre agent, perquè els altres només deixen rastre a les seves caselles, i els camins són disjunts;
+- tampoc pot estar ocupada per un altre agent, pel mateix motiu;
+- els rastres que deixa el mateix agent i són exactament els mateixos que a la solució original.
+
+El nombre de moviments no canvia (és la suma N₁ + N₂ + … + Nₖ), així que **la longitud és la mateixa**.
+
+**Nombre de seqüències.** Si hi ha k agents i cadascun fa N moviments, el nombre de seqüències que representen la mateixa solució és el nombre de maneres d'intercalar k seqüències de N moviments:
+
+**(k·N)! / (N!)ᵏ**
+
+Si cada agent fa un nombre diferent de moviments, la fórmula és (N₁+…+Nₖ)! / (N₁!·…·Nₖ!).
+- Mapa A (2 agents, 6 moviments cadascun): 12!/(6!·6!) = **924** seqüències.
+- Mapa D (22 i 20 moviments): C(42,20) ≈ **5,1·10¹¹**.
+- Mapa E (89, 30 i 52): ≈ **3,5·10⁷²**.
+
+**Com aprofitar-ho.** Es pot fixar un ordre d'agents: només es genera el moviment del **primer agent que encara no ha sortit**. Així, de cada solució només n'hi ha una versió a l'arbre, en lloc de (k·N)!/(N!)ᵏ, i el factor d'embrancament baixa de "moviments de tots els agents" a "moviments d'un sol agent" (com a màxim 3, perquè no pot tornar enrere). Pel que hem demostrat, no es perd cap solució ni l'optimalitat. Ho hem implementat a `Cerca.successorsPrimerAgent`, i ho fan servir les cerques del repte (pregunta [10]).
+
+La LNT també ho aprofita en part, perquè les diferents ordenacions porten als mateixos estats. Per això, al mapa A, la BFS passa de 697.814 a 5.892 nodes explorats quan s'activa la LNT.
+
 **[12] Quins dels algorismes implementats (BFS, DFS, IDS, A* amb cada heurística) garanteixen trobar la solució òptima en aquest problema? Especifica la resposta quan s'usa o no la LNT.**
+
+Abans cal tenir en compte una propietat d'aquest problema: **un mateix estat sempre es troba a la mateixa profunditat.** Cada moviment converteix exactament una casella en paret (dues quan l'agent surt), i l'estat ja indica quins agents han sortit. Per tant, el nombre de moviments fets es pot calcular a partir de l'estat. Això vol dir que la LNT mai descarta un camí més curt cap a un estat que ja s'havia trobat.
+
+| Algorisme | Sense LNT | Amb LNT | Justificació |
+|---|---|---|---|
+| **BFS** | Òptim | Òptim | Tots els moviments costen 1 i explora per nivells, així que la primera solució que troba és la més curta. Amb LNT continua sent òptim per la propietat anterior. Però als mapes B1 i B2 es queda sense memòria (vegeu [1]) |
+| **DFS** | No | No | Retorna la primera solució que troba en profunditat. Al mapa B1 troba 19 moviments quan l'òptim és 17, i al B2 en troba 31 quan l'òptim és 19. A més, amb el límit de 50 no pot trobar solucions més llargues (no és completa per als mapes C, E i F) |
+| **IDS** | Òptim (fins a 50) | Òptim (fins a 50) | Prova límits 1, 2, 3…, així que troba la solució menys profunda. Amb LNT continua sent òptim per la mateixa propietat. Però amb el tope de 50 no pot trobar solucions més llargues (per exemple, el mapa C, de 112) |
+| **A\* H.bas** | Òptim | Òptim | H.bas és admissible, així que l'A* troba l'òptim. Amb LNT, a més, cal que sigui consistent, i ho és (pregunta [5]) |
+| **A\* H.av** | Òptim | Òptim | El mateix argument. A més, només descarta estats amb h = INF, que no tenen cap solució |
+| Beam / Best-First (repte) | — | No | No són òptimes (pregunta [10]) |
+
+Ho confirmen els resultats: en tots els casos on BFS, IDS o A* acaben, troben exactament la mateixa longitud (12 a A, 17 a B1, 19 a B2, 112 a C i 42 a D). La DFS, en canvi, dona solucions més llargues.
 
 **[13] Compareu la memòria i el temps de BFS i IDS en els mapes on tots dos acaben. S'ajusten els resultats al que prediu la teoria?**
 

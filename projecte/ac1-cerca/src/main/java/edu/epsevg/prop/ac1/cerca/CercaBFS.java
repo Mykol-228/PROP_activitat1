@@ -11,9 +11,10 @@ public class CercaBFS extends Cerca {
         super(usarLNT);
     }
 
+    //PRE: inicial és l'estat inicial, rc guarda els resultats.
+    //POST: rc conté el resultat de la cerca en amplada.
     @Override
     public void ferCerca(Mapa inicial, ResultatCerca rc) {
-        // Per simular la cua farem servir add (afegir al final), que és el que fa afegirALNO per defecte
         cercaGenerica(inicial, rc, new LinkedList<Node>());
     }
 

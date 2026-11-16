@@ -7,6 +7,7 @@ import edu.epsevg.prop.ac1.resultat.ResultatCerca;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 
 /**
@@ -42,10 +43,9 @@ public abstract class Cerca {
      */
     public abstract String getNomCerca();
 
-    /**
-     * Bucle de cerca comú per BFS, DFS i A*. Només canvia on s'afegeixen els fills a la LNO.
-     */
-    protected void cercaGenerica(Mapa inicial, ResultatCerca rc, List<Node> lno) {
+    //PRE: inicial és l'estat inicial, rc guarda els resultats, lno és la llista de nodes oberts buida.
+    //POST: rc conté la solució si n'hi ha, i els nodes explorats, els tallats, la profunditat i la memòria.
+    protected void cercaGenerica(Mapa inicial, ResultatCerca rc, Queue<Node> lno) {
         Set<Mapa> lnt = null;
         if (usarLNT) {
             lnt = new HashSet<>();
@@ -57,9 +57,8 @@ public abstract class Cerca {
         }
 
         while (!lno.isEmpty()) {
-            Node actual = lno.remove(0);
+            Node actual = lno.poll();
 
-            // Un mateix estat pot estar repetit a la LNO
             if (usarLNT && lnt.contains(actual.estat)) {
                 rc.incNodesTallats();
                 continue;
@@ -77,7 +76,6 @@ public abstract class Cerca {
                 lnt.add(actual.estat);
             }
 
-            // Límit de profunditat: no ho comptem com a tallat
             if (!expandible(actual)) {
                 continue;
             }
@@ -98,29 +96,31 @@ public abstract class Cerca {
         }
     }
 
-    // Per defecte afegeix al final (cua). La DFS i l'A* ho sobreescriuen.
-    protected void afegirALNO(List<Node> lno, Node fill) {
+    //PRE: lno és la llista de nodes oberts, fill és un node.
+    //POST: fill s'ha afegit a lno.
+    protected void afegirALNO(Queue<Node> lno, Node fill) {
         lno.add(fill);
     }
 
-    // Per defecte tots els nodes es poden expandir. La DFS ho sobreescriu pel límit.
+    //PRE: n és un node.
+    //POST: retorna TRUE.
     protected boolean expandible(Node n) {
         return true;
     }
 
-    // Per defecte no es descarta cap node. L'A* ho sobreescriu (h infinita).
+    //PRE: n és un node.
+    //POST: retorna FALSE.
     protected boolean descartar(Node n) {
         return false;
     }
 
-    // Per defecte no fa res. L'A* ho sobreescriu per informar de l'heurística.
+    //PRE: n és el node explorat, rc guarda els resultats.
+    //POST: no fa res.
     protected void nodeExplorat(Node n, ResultatCerca rc) {
     }
 
-    /**
-     * Control de cicles: amb LNT mira si l'estat ja s'ha explorat, i sense LNT mira si
-     * l'estat ja apareix a la branca.
-     */
+    //PRE: n és un node, lnt és la llista de nodes tancats o null si no es fa servir LNT.
+    //POST: retorna TRUE si l'estat de n ja és a lnt, o a la branca de n si lnt és null, FALSE altrament.
     protected boolean esRepetit(Node n, Set<Mapa> lnt) {
         if (lnt != null) {
             return lnt.contains(n.estat);
@@ -128,7 +128,8 @@ public abstract class Cerca {
         return n.pare != null && n.pare.estaEnBranca(n.estat);
     }
 
-    // Genera tots els fills del node
+    //PRE: n és un node.
+    //POST: retorna els fills de n, un per cada moviment possible.
     protected List<Node> successors(Node n) {
         List<Node> fills = new ArrayList<>();
         for (Moviment mov : n.estat.getAccionsPossibles()) {
@@ -138,7 +139,8 @@ public abstract class Cerca {
         return fills;
     }
 
-    // Com successors, però només mou el primer agent que encara no ha sortit (pregunta [11])
+    //PRE: n és un node on algun agent encara no ha sortit.
+    //POST: retorna els fills de n que mouen el primer agent que encara no ha sortit.
     protected List<Node> successorsPrimerAgent(Node n) {
         int primer = 0;
         while (!n.estat.esAgentActiu(primer)) {

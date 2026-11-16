@@ -8,27 +8,34 @@ import java.util.*;
 public class CercaDFS extends Cerca {
     private static final int LIMIT_PER_DEFECTE = 50;
     private int limit = LIMIT_PER_DEFECTE;
+    private LinkedList<Node> pila;
 
     public CercaDFS(boolean usarLNT) { super(usarLNT); }
 
-    // Constructor amb un altre límit (el fa servir la IDS)
+    //PRE: usarLNT indica si es fa servir LNT, limit és la profunditat màxima.
+    //POST: crea una DFS amb aquest límit.
     public CercaDFS(boolean usarLNT, int limit) {
         super(usarLNT);
         this.limit = limit;
     }
 
+    //PRE: inicial és l'estat inicial, rc guarda els resultats.
+    //POST: rc conté el resultat de la cerca en profunditat.
     @Override
     public void ferCerca(Mapa inicial, ResultatCerca rc) {
-        cercaGenerica(inicial, rc, new LinkedList<Node>());
+        pila = new LinkedList<>();
+        cercaGenerica(inicial, rc, pila);
     }
 
-    // Afegim al principi perquè es tregui primer l'últim afegit (pila)
+    //PRE: lno és la pila de la cerca, fill és un node.
+    //POST: fill s'ha afegit al principi de la pila.
     @Override
-    protected void afegirALNO(List<Node> lno, Node fill) {
-        lno.add(0, fill);
+    protected void afegirALNO(Queue<Node> lno, Node fill) {
+        pila.addFirst(fill);
     }
 
-    // Comprovem si no hem passat el límit
+    //PRE: n és un node.
+    //POST: retorna TRUE si la profunditat de n és menor que el límit, FALSE altrament.
     @Override
     protected boolean expandible(Node n) {
         return n.depth < limit;

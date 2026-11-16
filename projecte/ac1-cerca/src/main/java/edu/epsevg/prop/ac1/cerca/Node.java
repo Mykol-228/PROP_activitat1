@@ -17,7 +17,7 @@ public class Node {
     public final Moviment accio;
     public final int depth;
     public final int g; // cost
-    public int h;       // heurística (només A*)
+    public int h;
 
     public Node(Mapa estat, Node pare, Moviment accio, int depth, int g) {
         this.estat = estat;
@@ -27,7 +27,8 @@ public class Node {
         this.g = g;
     }
 
-    // Retorna els moviments des de l'arrel fins a aquest node
+    //PRE: cert
+    //POST: retorna la llista de moviments des de l'arrel fins al node
     public List<Moviment> getCami() {
         List<Moviment> cami = new LinkedList<>();
         Node aux = this;
@@ -38,7 +39,8 @@ public class Node {
         return cami;
     }
 
-    // Mira si l'estat e és en aquest node o en algun dels seus pares
+    //PRE: e és un estat.
+    //POST: retorna TRUE si e és l'estat del node o d'algun dels seus pares, FALSE altrament.
     public boolean estaEnBranca(Mapa e) {
         Node aux = this;
         while (aux != null) {

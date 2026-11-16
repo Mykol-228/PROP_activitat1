@@ -28,6 +28,8 @@ public class Mapa extends MapaBase {
     @Override
     protected MapaBase clona() { return new Mapa(this); }
 
+    //PRE: o és un objecte.
+    //POST: retorna TRUE si o és un Mapa amb els agents a les mateixes posicions i la mateixa graella, FALSE altrament.
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -36,12 +38,13 @@ public class Mapa extends MapaBase {
 
         if (!this.agents.equals(other.agents)) return false;
 
-        //deepEquals permet comparar matrius
         if(!Arrays.deepEquals(this.grid, other.grid)) return false;
 
         return true;
     }
 
+    //PRE: cert
+    //POST: retorna un enter calculat a partir dels agents i de la graella.
     @Override
     public int hashCode() {
         int hash = java.util.Objects.hash(agents);
@@ -59,7 +62,6 @@ public class Mapa extends MapaBase {
      */
     @Override
     public int[][] distancesFrom(Posicio src) {
-        // Inicialitzem la matriu de distàncies a INF
         int[][] dist = new int[this.n][this.m];
         for (int i = 0; i < this.n; i++) {
             for (int j = 0; j < this.m; j++) {
@@ -67,31 +69,24 @@ public class Mapa extends MapaBase {
             }
         }
 
-        // Comprovem la validesa de l'origen
         if (src == null || src.x < 0 || src.x >= this.n || src.y < 0 || src.y >= this.m) {
             return dist;
         }
 
-        // Inicialitzem la cua BFS
         LinkedList<Posicio> cua = new LinkedList<>();
         dist[src.x][src.y] = 0;
         cua.add(src);
 
-        // Bucle principal BFS
         while (!cua.isEmpty()) {
             Posicio actual = cua.poll();
 
-            // Recorrem les 4 direccions possibles
             for (Direccio d : Direccio.values()) {
                 Posicio seguent = actual.translate(d);
 
-                // Comprovem límits de la graella
                 if (seguent.x >= 0 && seguent.x < this.n && seguent.y >= 0 && seguent.y < this.m) {
                     
-                    // Comprovem que no sigui paret
                     if (this.grid[seguent.x][seguent.y] != MapaBase.PARET) {
                         
-                        // Comprovem si hi ha cap altre agent a la casella
                         boolean casellaOcupada = false;
                         for (int i = 0; i < this.agents.size() && !casellaOcupada; i++) {
                             Posicio agent = this.agents.get(i);
@@ -100,7 +95,6 @@ public class Mapa extends MapaBase {
                             }
                         }
 
-                        // Si és transitable i no visitada
                         if (!casellaOcupada && dist[seguent.x][seguent.y] == MapaBase.INF) {
                             dist[seguent.x][seguent.y] = dist[actual.x][actual.y] + 1;
                             cua.add(seguent);

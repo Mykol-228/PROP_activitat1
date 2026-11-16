@@ -8,12 +8,12 @@ public class CercaIDS extends Cerca {
 
     public CercaIDS(boolean usarLNT) { super(usarLNT); }
 
+    //PRE: inicial és l'estat inicial, rc guarda els resultats.
+    //POST: rc conté el resultat de fer DFS amb límit 1, 2, ... fins a 50 o fins que es troba la solució.
     @Override
     public void ferCerca(Mapa inicial, ResultatCerca rc) {
-        // Iterem incrementant el límit de profunditat de 1 en 1
         for (int limit = 1; limit <= LIMIT_PER_DEFECTE; ++limit) {
 
-            // A cada iteració fem una DFS nova amb el límit actual
             CercaDFS dfs = new CercaDFS(usarLNT, limit);
             dfs.ferCerca(inicial, rc);
 
