@@ -47,17 +47,41 @@ public class Main {
         List<String[]> csv = new ArrayList<>();
         csv.add(CSV_HEADER);
 
-        Mapa m = maps.get(0); // Carrega el primer mapa
+        Mapa m = maps.get(6); // Carrega el primer mapa
 
-        executarIRecopilarResultats(new CercaBFS(false), m, csv);
+        //executarIRecopilarResultats(  new CercaIDS(false), m, csv);
+        //executarIRecopilarResultats(new CercaBFS(false), m, csv);
         
         // Feu les crides que us semblin oportunes, p.ex:
         //===================================================================
-        //executarIRecopilarResultats(  new CercaBFS(true), m, csv);
+        //executarIRecopilarResultats(new CercaBeamIterativa(true, new HeuristicaAvancada()), m, csv);
+        /* 
+        executarIRecopilarResultats(  new CercaBFS(false), m, csv);
+        executarIRecopilarResultats(  new CercaBFS(true), m, csv);
+
+        //executarIRecopilarResultats(  new CercaDFS(false), m, csv);
+        executarIRecopilarResultats(  new CercaDFS(true), m, csv);
+
+        //executarIRecopilarResultats(  new CercaIDS(false), m, csv);
+        executarIRecopilarResultats(  new CercaIDS(true), m, csv);
+        */
+        executarIRecopilarResultats(  new CercaAStar(false, new HeuristicaBasica()), m, csv);
+        executarIRecopilarResultats(  new CercaAStar(true, new HeuristicaBasica()), m, csv);
+
+        executarIRecopilarResultats(  new CercaAStar(false, new HeuristicaAvancada()), m, csv);
+        executarIRecopilarResultats(  new CercaAStar(true, new HeuristicaAvancada()), m, csv);
+
+        executarIRecopilarResultats(new CercaBeamIterativa(false, new HeuristicaBasica()), m, csv);
+        executarIRecopilarResultats(new CercaBeamIterativa(true, new HeuristicaBasica()), m, csv);
+
+        executarIRecopilarResultats(new CercaBeamIterativa(false, new HeuristicaAvancada()), m, csv);
+        executarIRecopilarResultats(new CercaBeamIterativa(true, new HeuristicaAvancada()), m, csv);
+        
+
         //executarIRecopilarResultats(  new CercaDFS(false),m, csv);
         //  ...
-        executarIRecopilarResultats(  new CercaAStar(usarLNT, new HeuristicaAvancada()), m, csv);
-
+        //executarIRecopilarResultats(  new CercaBestFirst(true, new HeuristicaAvancada()), m, csv);
+        //executarIRecopilarResultats(  new CercaAStar(usarLNT, new HeuristicaAvancada()), m, csv);
         // Escrivim els resultats
         CsvWriter cw = new CsvWriter(RESULTS_FILE);
         cw.write(csv);
