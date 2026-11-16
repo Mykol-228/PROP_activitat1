@@ -321,7 +321,7 @@ Al mapa A, amb 2 agents de 6 moviments, són 924 seqüències, i al mapa D ja en
 Per aprofitar-ho n'hi ha prou amb fixar un ordre: moure sempre el primer agent que encara no ha sortit. Així cada solució apareix una sola vegada a l'arbre i el factor d'embrancament baixa, sense perdre cap solució ni l'optimalitat. És el que fa la nostra cerca del repte. La LNT també ho aprofita en part: al mapa A, la BFS passa de 697.814 a 5.892 nodes explorats.
 
 
-**[12] Quins dels algorismes implementats (BFS, DFS, IDS, A* amb cada heurística) garanteixen trobar la solució òptima en aquest problema? Especifica la resposta quan s'usa o no la LNT.**
+**[12] Quins dels algorismes implementats (BFS, DFS, IDS, A\* amb cada heurística) garanteixen trobar la solució òptima en aquest problema? Especifica la resposta quan s'usa o no la LNT.**
 
 En aquest problema un mateix estat sempre es troba a la mateixa profunditat, perquè cada moviment afegeix una paret. Per això la LNT mai descarta un camí més curt, i fer-la servir no canvia si un algorisme és òptim o no.
 
